@@ -19,11 +19,19 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: actions/configure-pages@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
       - name: Download the original model and verify its checksum
         run: |
           mkdir -p site/models
           curl --fail --location --retry 3 --output site/models/u2net.onnx https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net.onnx
           echo '8d10d2f3bb75ae3b6d527c77944fc5e7dcd94b29809d47a739a7a728a912b491  site/models/u2net.onnx' | sha256sum --check
+          curl --fail --location --retry 3 --output original.onnx https://github.com/danielgatis/rembg/releases/download/v0.0.0/BiRefNet-general-bb_swin_v1_tiny-epoch_232.onnx
+          echo '5600024376f572a557870a5eb0afb1e5961636bef4e1e22132025467d0f03333  original.onnx' | sha256sum --check
+          pip install onnx==1.19.0
+          python prepare_browser_model.py original.onnx site/models/birefnet-general-lite-web.onnx
+          echo 'd4eabb81e425bee7e5754a2d9fb9e3cb221b7b470ecf9d6510e529939f909b14  site/models/birefnet-general-lite-web.onnx' | sha256sum --check
       - uses: actions/upload-pages-artifact@v4
         with:
           path: site
